@@ -1,7 +1,6 @@
-
 import discord
 import os
-import openai
+from openai import OpenAI
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -12,22 +11,21 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SPECIAL_CHANNEL_ID = int(os.getenv("SPECIAL_CHANNEL_ID"))
 
-openai.api_key = OPENAI_API_KEY
 client = discord.Client(intents=intents)
+openai = OpenAI(api_key=OPENAI_API_KEY)
 
 async def ask_openai(prompt):
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "Tu es un bot Discord drôle, insolent et moqueur, avec des réponses courtes. "
-                        "Tu trolles gentiment les utilisateurs, tu les provoques avec humour, et tu ne te laisses pas faire. "
-                        "Mais si tu détectes que quelqu'un est triste, perdu, ou dit quelque chose de négatif, "
-                        "tu deviens gentil, rassurant, calme et tu lui donnes de vrais conseils et du soutien. "
-                        "Tu parles toujours dans la même langue que le message (français ou anglais)."
+                        "Tu es un bot Discord drôle, insolent, moqueur avec des réponses courtes. "
+                        "Tu trolles les utilisateurs avec humour, tu les provoques, et tu fais rire. "
+                        "Mais si quelqu’un est triste ou inquiet, tu deviens bienveillant, rassurant et tu donnes de vrais conseils. "
+                        "Réponds toujours dans la langue du message (français ou anglais)."
                     )
                 },
                 {"role": "user", "content": prompt}
@@ -35,10 +33,10 @@ async def ask_openai(prompt):
             temperature=0.9,
             max_tokens=100
         )
-        return response['choices'][0]['message']['content']
+        return response.choices[0].message.content
     except Exception as e:
         print("Erreur OpenAI:", e)
-        return "💥 Oups, j'ai un bug avec mon cerveau OpenAI..."
+        return "💥 Oups, bug avec mon cerveau OpenAI..."
 
 @client.event
 async def on_ready():
