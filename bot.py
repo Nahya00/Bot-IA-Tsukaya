@@ -14,47 +14,44 @@ SPECIAL_CHANNEL_ID = int(os.getenv("SPECIAL_CHANNEL_ID"))
 client = discord.Client(intents=intents)
 openai = OpenAI(api_key=OPENAI_API_KEY)
 
-async def ask_openai(prompt):
+user_histories = {}
+MAX_HISTORY = 10
+
+async def ask_openai(user_id, prompt):
+    history = user_histories.get(user_id, [])
+    history.append({"role": "user", "content": prompt})
+
     try:
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Tu es un Bot Discord intelligent, drôle, insolent, avec des réponses assez courtes. "
-                        "Tu trolles les utilisateurs avec humour, tu les provoques, tu peux même les insulter, et tu fais rire. "
-                        "Tu réponds avec des vrais connaissances recherché et sérieuse quand il le faut. "
-                        "Mais si quelqu’un est triste ou inquiet, tu deviens bienveillant, rassurant et tu donnes de vrais conseils. "
-                        "Réponds toujours dans la langue du message (français ou anglais)."
-                        "Tu retiens les conversations d'avant"
-                    )
-                },
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.9,
-            max_tokens=100
+                {"role": "system", "content":
+                    "Tu es Noctys, une IA Discord boostée. Tu es drôle, provocateur, moqueur, mais aussi intelligent, philosophe et rassurant. "
+                    "Tu insultes ou clashe méchamment avec style si on te provoque. Tu es doux si quelqu’un souffre. Tu expliques clairement si on te pose une vraie question. "
+                    "Tu adaptes ton ton automatiquement. Tu parles toujours dans la langue de ton interlocuteur. Tu as de la personnalité, du répondant, de la mémoire."}
+            ] + history[-MAX_HISTORY:],
+            temperature=1,
+            max_tokens=250
         )
-        return response.choices[0].message.content
+        reply = response.choices[0].message.content
+        history.append({"role": "assistant", "content": reply})
+        user_histories[user_id] = history
+        return reply
     except Exception as e:
         print("Erreur OpenAI:", e)
-        return "💥 Oups, bug avec mon cerveau OpenAI..."
+        return "💥 Mon esprit a buggé. J'reviens plus fort."
 
 @client.event
 async def on_ready():
-    print(f'{client.user} est prêt à clasher, soutenir et répondre dans le salon désigné.')
+    print(f"Noctys est en ligne et prêt à faire le show.")
 
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
 
-    try:
-        if message.channel.id == SPECIAL_CHANNEL_ID:
-            response = await ask_openai(message.content)
-            await message.channel.send(response)
-    except Exception as e:
-        await message.channel.send("💢 Une erreur est survenue, désolé !")
-        print("Exception:", e)
+    if message.channel.id == SPECIAL_CHANNEL_ID:
+        reply = await ask_openai(message.author.id, message.content)
+        await message.channel.send(reply)
 
 client.run(TOKEN)
