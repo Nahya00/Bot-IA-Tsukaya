@@ -19,7 +19,7 @@ openai = OpenAI(api_key=OPENAI_API_KEY)
 
 # Mémoire de conversation par utilisateur
 user_histories = {}
-MAX_HISTORY = max        # nombre maximum de messages conservés par personne
+MAX_HISTORY = 500        # nombre maximum de messages conservés par personne
 
 # ─── Fonction : appel OpenAI ────────────────────────────────────────────────────
 async def ask_openai(user_id: int, prompt: str) -> str:
