@@ -57,7 +57,7 @@ async def ask_openai(user_id: int, prompt: str) -> str:
 # ─── Événements Discord ─────────────────────────────────────────────────────────
 @client.event
 async def on_ready():
-    print(f"Noctys (humain) est en ligne !")
+    print(f"Tsukaya (humain) est en ligne !")
 
 @client.event
 async def on_message(message: discord.Message):
