@@ -14,7 +14,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 SPECIAL_CHANNEL_ID = 1379270987991748659     # salon IA surveillé
-SANCTION_LOG_CHANNEL = 1379415848338591745     # salon log sanctions
+SANCTION_LOG_CHANNEL = 1379270842499727491    # salon log sanctions
 
 # ─── Clients ────────────────────────────────────────────────────────────────────
 client = discord.Client(intents=intents)
