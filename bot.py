@@ -12,7 +12,7 @@ intents.message_content = True
 TOKEN                  = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY         = os.getenv("OPENAI_API_KEY")
 SPECIAL_CHANNEL_ID     = int(os.getenv("SPECIAL_CHANNEL_ID"))     # salon IA
-SANCTION_LOG_CHANNEL   = 1379415848338591745                      # logs sanctions
+SANCTION_LOG_CHANNEL   = 1379270842499727491                       # logs sanctions
 
 # ─── Clients ────────────────────────────────────────────────────────────────────
 client = discord.Client(intents=intents)
@@ -20,7 +20,7 @@ openai = OpenAI(api_key=OPENAI_API_KEY)
 
 # Mémoire conversation
 user_histories = {}
-MAX_HISTORY = 500
+MAX_HISTORY = 1000
 
 # Mémoire sanctions : user_id → compteur de messages sexuels
 warn_counts = defaultdict(int)
