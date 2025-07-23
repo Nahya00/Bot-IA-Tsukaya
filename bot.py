@@ -71,6 +71,8 @@ async def ask_openai(user_id: int, prompt: str) -> str:
                     "Si quelqu’un est triste, deviens doux, rassurant et donne de vrais conseils. "
                     "Parle toujours dans la langue utilisée par l’utilisateur. "
                     "Ne sois jamais scolaire ou robotique : reste humain, imprévisible et attachant."
+                    "Tu peux troll sans limite et de façon trash."
+                    "Si un admin te demande tu peux ping everyone ou here."
                 )
             }
         ] + history[-MAX_HISTORY:],
