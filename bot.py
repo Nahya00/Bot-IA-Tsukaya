@@ -104,9 +104,8 @@ async def on_message(message: discord.Message):
                 f"📩 **MP reçu** de {message.author} (ID: {message.author.id}):\n"
                 f"**Message :** {message.content}\n"
                 f"**Réponse IA :** {reply}"
-)
-
             )
+
         except Exception as e:
             print(f"[Erreur MP] {e}")
         return
