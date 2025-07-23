@@ -206,4 +206,3 @@ async def on_message(message: discord.Message):
 
 client.run(TOKEN)
 
-
