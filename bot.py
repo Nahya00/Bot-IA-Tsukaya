@@ -99,13 +99,8 @@ async def on_message(message: discord.Message):
         try:
             reply = await ask_openai(message.author.id, message.content)
             await message.channel.send(reply)
+            # Log message and IA response
             await log_channel.send(
-                f"📩 **MP reçu** de {message.author} (ID: {message.author.id}):
-"
-                f"**Message :** {message.content}
-"
-                f"**Réponse IA :** {reply}"
-            )(
                 f"📩 **MP reçu** de {message.author} (ID: {message.author.id}):
 "
                 f"**Message :** {message.content}
