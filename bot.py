@@ -93,6 +93,23 @@ async def on_message(message: discord.Message):
     if message.author == client.user:
         return
 
+    # Réponse aux MP et log dans salon
+    if isinstance(message.channel, discord.DMChannel):
+        log_channel = client.get_channel(1397621207007760566)
+        try:
+            reply = await ask_openai(message.author.id, message.content)
+            await message.channel.send(reply)
+            await log_channel.send(
+                f"📩 **MP reçu** de {message.author} (ID: {message.author.id}):
+"
+                f"**Message :** {message.content}
+"
+                f"**Réponse IA :** {reply}"
+            )
+        except Exception as e:
+            print(f"[Erreur MP] {e}")
+        return
+
     if message.channel.id == SPECIAL_CHANNEL_ID:
         if SEX_RE.search(message.content):
             if any(x in message.content.lower() for x in ["mdr", "ptdr", "😂", "🤣", "blague", "c’est pour rire"]):
@@ -137,13 +154,30 @@ async def on_message(message: discord.Message):
             contenu = message.content[11:]
             await message.channel.send(
                 contenu,
-                allowed_mentions=discord.AllowedMentions(everyone=True, users=True)
+                allowed_mentions=discord.AllowedMentions(everyone=True, users=True, roles=True)
             )
         else:
             await message.channel.send("🚫 Tu n’as pas le rôle nécessaire pour me faire parler.")
         return
 
+    # ── Commande spéciale pour ping everyone/here ──
+    if message.content.lower().startswith("zeydan ping"):
+        autorise_role = 1379268686141063289
+        if any(role.id == autorise_role for role in message.author.roles):
+            if "everyone" in message.content.lower():
+                await message.channel.send("@everyone", allowed_mentions=discord.AllowedMentions(everyone=True))
+            elif "here" in message.content.lower():
+                await message.channel.send("@here", allowed_mentions=discord.AllowedMentions(everyone=True))
+            else:
+                await message.channel.send("❌ Dis-moi qui ping (ex: `zeydan ping everyone`) !")
+        else:
+            await message.channel.send("🚫 Tu n’as pas le rôle nécessaire pour utiliser les pings.")
+        return
+
     # Réponse normale IA
+    if message.channel.id != SPECIAL_CHANNEL_ID and client.user not in message.mentions:
+        return
+
     reply = await ask_openai(message.author.id, message.content)
 
     # Ping intelligent : transforme "@pseudo" en vraie mention si possible
@@ -171,4 +205,5 @@ async def on_message(message: discord.Message):
     await message.channel.send(reply)
 
 client.run(TOKEN)
+
 
