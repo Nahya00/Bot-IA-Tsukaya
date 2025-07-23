@@ -36,12 +36,12 @@ def save_warns():
         json.dump(warn_counts, f)
 
 # ─── Filtres ────────────────────────────────────────────────────────────────────
-SEX_PATTERNS = [
-    r"b\cul\b", r"\bbaise(?:r|s|z)?\b", r"b\niq(?:uer|ue)?\b",
-    r"b\sexe\b", r"b\p[o0]rn\b", r"b\pénis\b", r"b\bite\b",
-    r"b\chatte\b", r"b\fellatio[n]?\b", r"b\sodomie\b", r"b\branle(r|tte)?\b",
-    r"b\bande(?:r)?\b"
+    SEX_PATTERNS = [
+    r"\bcul\b", r"\bbaise(?:r|s|z)?\b", r"\bsexe\b", r"\bp[o0]rn\b", 
+    r"\bpénis\b", r"\bbite\b", r"\bchatte\b", r"\bfellatio[n]?\b", 
+    r"\bsodomie\b", r"\branle(r|tte)?\b", r"\bbande(?:r)?\b"
 ]
+
 SEX_RE = re.compile("|".join(SEX_PATTERNS), re.IGNORECASE)
 
 # ─── IA Zeydan ─────────────────────────────────────────────────────────────────
