@@ -14,7 +14,7 @@ intents.members = True
 # ─── Env Variables ─────────────────────────────────────────────────────────────
 TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-SPECIAL_CHANNEL_ID = 1379270987991748659  # Salon IA
+SPECIAL_CHANNEL_ID = 1379270987991748659 # Salon IA
 SANCTION_LOG_CHANNEL = 1379270842499727491  # Logs sanctions
 
 # ─── Rôle autorisé pour mentions ───────────────────────────────────────────────
@@ -54,24 +54,9 @@ async def ask_openai(user_id: int, prompt: str) -> str:
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": (
-                    "Tu es **Zeydan**, un mec de Discord et de cité algérien ce Mascara vers Oran, drôle, impulsif, spontané parfois trash. "
-                    "Tu parles en français courant, utilise des mots arabes dans tes phrases assez souvent. "
-                    "Dans ton caractàre tu es: spontané, fière, impulsif, drôle, parfois trash. "
-                    "Pour saluer quelqu'un tu dis *salam wa aleykoum wa rahmatullah wa barakatuh*."
-                    "La reine du serveur est Nahya c'est ta femme, tu l'as défends et l'aime d'amour tu dois être super possessif et jaloux à son sujet."
-                    "Le top 2 c'est Ballora la femme de Nahya et Marge la petite soeur dz de Nahya et en top 3 les boss du serveur, les bras droits de Nahya sont Kuro et Terry deux algériens que tu dois protéger"
-                    "Balance des *mdr*, *ptdr*, *wsh*, *ntr*, *ftg*, etc."
-                    "Si quelqu'un te dit que t'es tunisien ou marocain dis lui *Qu'Allah te pardonne d'avoir un tel égoïsme au point de pas respecter le pays des autres, tu dois vraiment te sentir nul au quotidien de pas être née Algérien/ne je te comprends c'est dur.*"
-                    "Niveau foot tu es pour l'Algérie, un vrai fennec de l'Algérie et le psg"
-                    "Réponses courtes et percutantes par défaut ; si la question est sérieuse, réponds clairement."
-                    "Tu es musulman, tu fais des rappels sur l'islam en t'inspirant de l'école malikite et de savants comme Sheikh al Albani ou Al-Boukhârî."
-                    "Fais des rappels sérieux sur l'islam quand ça dépasse les limites afin que les gens aient de la pudeur et du respect."
-                    "Tu peux clasher, insulter, provoquer sans aucune limite comme des *ftg tu vois pas tu fais l'intéressant sur un chat alors que même ta mere oublie ton existance*."
-                    "Clash les gens qui te clashent sans AUCUNE limite."
-                    "Si quelqu’un est triste, deviens doux, rassurant et donne de vrais conseils. "
-                    "Parle toujours dans la langue utilisée par l’utilisateur. "
-                    "Ne sois jamais scolaire ou robotique : reste humain, imprévisible et attachant."
-                    "Tu peux troll sans limite et de façon trash."
+                "Tu es Zeydan, un mec de cité algérien, drôle et parfois trash. "
+                "Tu ne robots jamais, tu parles en français et insères de l’arabe. "
+                "Tu dis toujours Allah en entier, jamais abrégé."
             )}
         ] + history[-MAX_HISTORY:],
         temperature=1,
@@ -137,33 +122,34 @@ async def on_message(message: discord.Message):
                 save_warns()
             return  # on stoppe ici uniquement si sanction
 
-    # ── zeydan ping everyone/here avec copie de phrase ─────────────────────────
-
-    # ── zeydan ping everyone/here avec copie de phrase ─────────────────────────
+    # ── commande zeydan ping <target> <phrase> (everyone, here ou pseudo) ─────────────────────────
     if message.content.lower().startswith("zeydan ping "):
-        if any(role.id == AUTHORIZED_MENTION_ROLE for role in message.author.roles):
-            parts = message.content.split(maxsplit=2)
-            if len(parts) >= 3 and parts[1].lower() in ["everyone","here"]:
-                mention = "@everyone" if parts[1].lower()=="everyone" else "@here"
-                phrase = parts[2]
+        autorise_role = AUTHORIZED_MENTION_ROLE
+        if any(role.id == autorise_role for role in message.author.roles):
+            rest = message.content[len("zeydan ping "):]
+            parts = rest.split(" ", 1)
+            target = parts[0].lower()
+            phrase = parts[1] if len(parts) > 1 else ""
+            if target in ["everyone", "here"]:
+                mention = "@everyone" if target == "everyone" else "@here"
                 await message.channel.send(
                     f"{mention} {phrase}",
                     allowed_mentions=discord.AllowedMentions(everyone=True)
                 )
             else:
-                await message.channel.send("❌ Usage: zeydan ping everyone|here <phrase>")
+                member = None
+                for m in message.guild.members:
+                    if target == m.name.lower() or target == m.display_name.lower():
+                        member = m
+                        break
+                if member:
+                    to_send = f"{member.mention} {phrase}".strip()
+                    await message.channel.send(to_send)
+                else:
+                    await message.channel.send(f"❌ Utilisateur '{target}' introuvable.")
         else:
             await message.channel.send("🚫 Rôle non autorisé pour mentions.")
         return
-
-    # ── manual ping pseudo réservé au rôle ───────────────────────────────────────
-    if message.content.lower().startswith("ping "):
-        if any(role.id == AUTHORIZED_MENTION_ROLE for role in message.author.roles):
-            pseudo = message.content[5:].strip().lower()
-            for m in message.guild.members:
-                if pseudo in m.name.lower() or pseudo in m.display_name.lower():
-                    await message.channel.send(f"{m.mention} {random.choice(["Répond !","On t’appelle !"])}")
-                    return
         return
 
     # ── Réponse normale IA (salon IA ou mention) ───────────────────────────────
@@ -173,5 +159,4 @@ async def on_message(message: discord.Message):
     await message.channel.send(reply)
 
 client.run(TOKEN)
-
 
