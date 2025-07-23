@@ -95,6 +95,7 @@ async def on_message(message: discord.Message):
 
     # ── Sanctions contenu sexuel (salon IA) ────────────────────────────────────
     if message.channel.id == SPECIAL_CHANNEL_ID:
+        # Si contenu sexuel détecté
         if SEX_RE.search(message.content) and not any(x in message.content.lower() for x in ["mdr","ptdr","😂","🤣","blague","c’est pour rire"]):
             user_id = str(message.author.id)
             warn_counts[user_id] = warn_counts.get(user_id, 0) + 1
@@ -119,7 +120,9 @@ async def on_message(message: discord.Message):
                 await message.channel.send("📿 *Rappel : Crains Allah même en privé.*")
                 warn_counts[user_id] = 0
                 save_warns()
-        return
+            return  # on stoppe ici uniquement si sanction
+
+    # ── zeydan ping everyone/here avec copie de phrase ─────────────────────────
 
     # ── zeydan ping everyone/here avec copie de phrase ─────────────────────────
     if message.content.lower().startswith("zeydan ping "):
@@ -155,4 +158,5 @@ async def on_message(message: discord.Message):
     await message.channel.send(reply)
 
 client.run(TOKEN)
+
 
