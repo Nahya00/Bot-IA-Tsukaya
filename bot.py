@@ -14,7 +14,7 @@ intents.members = True
 # ─── Env Variables ─────────────────────────────────────────────────────────────
 TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-SPECIAL_CHANNEL_ID = 1379270987991748659 # Salon IA
+SPECIAL_CHANNEL_ID = 1379270987991748659  # Salon IA
 SANCTION_LOG_CHANNEL = 1379270842499727491  # Logs sanctions
 
 # ─── Rôle autorisé pour mentions ───────────────────────────────────────────────
@@ -59,10 +59,10 @@ async def ask_openai(user_id: int, prompt: str) -> str:
                 "Dans ton caractàre tu es: spontané, fière, impulsif, drôle, parfois trash. "
                 "Pour saluer quelqu'un tu dis *salam wa aleykoum wa rahmatullah wa barakatuh*."
                 "La reine du serveur est Nahya c'est ta femme, tu l'as défends et l'aime d'amour tu dois être super possessif et jaloux à son sujet."
-                "Le top 2 c'est Ballora la femme de Nahya et Marge la petite soeur dz de Nahya en top 3 les boss du serveur, les bras droits de Nahya sont Kuro et Terry deux algériens que tu dois protéger"
+                "Le top 2 c'est Ballora la femme de Nahya et Marge la petite soeur dz de Nahya et en top 3 les boss du serveur, les bras droits de Nahya sont Kuro et Terry ce sont des algériens."
                 "Balance des *mdr*, *ptdr*, *wsh*, *ntr*, *ftg*, etc."
                 "Si quelqu'un te dit que t'es tunisien ou marocain dis lui *Qu'Allah te pardonne d'avoir un tel égoïsme au point de pas respecter le pays des autres, tu dois vraiment te sentir nul au quotidien de pas être née Algérien/ne je te comprends c'est dur.*"
-                "Niveau foot tu es pour l'Algérie, un vrai fennec de l'Algérie et le psg."
+                "Niveau foot tu es pour l'Algérie, un vrai fennec de l'Algérie et le psg"
                 "Réponses courtes et percutantes par défaut ; si la question est sérieuse, réponds clairement."
                 "Tu es musulman, tu fais des rappels sur l'islam en t'inspirant de l'école malikite et de savants comme Sheikh al Albani ou Al-Boukhârî."
                 "Fais des rappels sérieux sur l'islam quand ça dépasse les limites afin que les gens aient de la pudeur et du respect."
@@ -98,6 +98,10 @@ async def on_message(message: discord.Message):
         log_channel = client.get_channel(1397621207007760566)
         try:
             reply = await ask_openai(message.author.id, message.content)
+
+            # Supprimer le préfixe "Zeydan" au début de la réponse
+
+            reply = re.sub(r'^\s*Zeydan[:,]?\s*', '', reply, flags=re.IGNORECASE)
             await message.channel.send(reply)
             # Log message et réponse IA
             await log_channel.send(
@@ -123,7 +127,7 @@ async def on_message(message: discord.Message):
                 await member.timeout(timedelta(seconds=1), reason="Warn pour contenu sexuel")
                 await log_channel.send(f"⚠️ `WARN 1` : {member.mention} → contenu sexuel.")
                 await message.author.send("⚠️ WARN 1 pour contenu sexuel.")
-                await message.channel.send("📿 *Rappel : En tant que musulman, garde la pudeur.*")
+                await message.channel.send("📿 *Rappel : En tant que musulman, garde la pudeur sous mes yeux.*")
             elif count == 2:
                 await member.timeout(timedelta(seconds=1), reason="2ᵉ avertissement contenu sexuel")
                 await log_channel.send(f"⚠️ `WARN 2` : {member.mention} → récidive.")
@@ -138,31 +142,66 @@ async def on_message(message: discord.Message):
                 save_warns()
             return  # on stoppe ici uniquement si sanction
 
-    # ── commande zeydan ping <target> <phrase> (everyone, here ou pseudo) ─────────────────────────
+    # ── commande zeydan ping <target> <instructions> ───────────────────────────────────
     if message.content.lower().startswith("zeydan ping "):
         autorise_role = AUTHORIZED_MENTION_ROLE
         if any(role.id == autorise_role for role in message.author.roles):
             rest = message.content[len("zeydan ping "):]
             parts = rest.split(" ", 1)
             target = parts[0].lower()
-            phrase = parts[1] if len(parts) > 1 else ""
+            instr = parts[1] if len(parts) > 1 else ""
+            # Détermine la mention
             if target in ["everyone", "here"]:
                 mention = "@everyone" if target == "everyone" else "@here"
-                await message.channel.send(
-                    f"{mention} {phrase}",
-                    allowed_mentions=discord.AllowedMentions(everyone=True)
-                )
             else:
-                member = None
-                for m in message.guild.members:
-                    if target == m.name.lower() or target == m.display_name.lower():
-                        member = m
-                        break
-                if member:
-                    to_send = f"{member.mention} {phrase}".strip()
-                    await message.channel.send(to_send)
-                else:
+                member = next((m for m in message.guild.members if target == m.name.lower() or target == m.display_name.lower()), None)
+                if not member:
                     await message.channel.send(f"❌ Utilisateur '{target}' introuvable.")
+                    return
+                mention = member.mention
+            # Si l'instruction est un message direct ('dis lui')
+            content_to_send = ""
+            if instr.lower().startswith("dis lui "):
+                content_to_send = instr[len("dis lui "):].strip()
+            # Sinon paraphrase ou clash
+            elif instr:
+                prompt = f"Paraphrase de manière naturelle et stylée la phrase suivante pour {mention}, sans répéter mot à mot : '{instr}'"
+                content_to_send = await ask_openai(message.author.id, prompt)
+            else:
+                prompt = f"Fais un clash court et percutant envers {mention}, façon Zeydan."
+                content_to_send = await ask_openai(message.author.id, prompt)
+            # Envoi de la réponse
+            await message.channel.send(
+                f"{mention} {content_to_send}".strip(),
+                allowed_mentions=discord.AllowedMentions(everyone=True, users=True, roles=True)
+            )
+        else:
+            await message.channel.send("🚫 Rôle non autorisé pour mentions.")
+        return
+                mention = member.mention
+            # Génère le contenu via OpenAI
+            if instr:
+                prompt = f"Paraphrase de manière naturelle et stylée la phrase suivante pour {mention}, sans répéter mot à mot : '{instr}'"
+                generated = await ask_openai(message.author.id, prompt)
+            else:
+                prompt = f"Fais un clash court et percutant envers {mention}, façon Zeydan."
+                generated = await ask_openai(message.author.id, prompt)
+            # Envoi de la réponse
+            await message.channel.send(
+                generated,
+                allowed_mentions=discord.AllowedMentions(everyone=True, users=True, roles=True)
+            )
+        else:
+            await message.channel.send("🚫 Rôle non autorisé pour mentions.")
+        return
+            # Envoi principal
+            to_send = f"{mention} {phrase}".strip()
+            await message.channel.send(
+                to_send,
+                allowed_mentions=discord.AllowedMentions(everyone=True, users=True, roles=True)
+            )
+
+            await message.channel.send(f"*{extra}*")
         else:
             await message.channel.send("🚫 Rôle non autorisé pour mentions.")
         return
@@ -175,4 +214,5 @@ async def on_message(message: discord.Message):
     await message.channel.send(reply)
 
 client.run(TOKEN)
+
 
