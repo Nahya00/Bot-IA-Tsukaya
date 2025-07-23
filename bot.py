@@ -101,11 +101,11 @@ async def on_message(message: discord.Message):
             await message.channel.send(reply)
             # Log message and IA response
             await log_channel.send(
-                f"📩 **MP reçu** de {message.author} (ID: {message.author.id}):
-"
-                f"**Message :** {message.content}
-"
+                f"📩 **MP reçu** de {message.author} (ID: {message.author.id}):\n"
+                f"**Message :** {message.content}\n"
                 f"**Réponse IA :** {reply}"
+)
+
             )
         except Exception as e:
             print(f"[Erreur MP] {e}")
