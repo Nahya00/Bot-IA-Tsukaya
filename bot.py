@@ -36,7 +36,7 @@ def save_warns():
         json.dump(warn_counts, f)
 
 # ─── Filtres ────────────────────────────────────────────────────────────────────
-    SEX_PATTERNS = [
+SEX_PATTERNS = [
     r"\bcul\b", r"\bbaise(?:r|s|z)?\b", r"\bsexe\b", r"\bp[o0]rn\b", 
     r"\bpénis\b", r"\bbite\b", r"\bchatte\b", r"\bfellatio[n]?\b", 
     r"\bsodomie\b", r"\branle(r|tte)?\b", r"\bbande(?:r)?\b"
