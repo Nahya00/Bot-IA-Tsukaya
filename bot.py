@@ -41,7 +41,6 @@ SEX_PATTERNS = [
     r"\bpénis\b", r"\bbite\b", r"\bchatte\b", r"\bfellatio[n]?\b", 
     r"\bsodomie\b", r"\branle(r|tte)?\b", r"\bbande(?:r)?\b"
 ]
-
 SEX_RE = re.compile("|".join(SEX_PATTERNS), re.IGNORECASE)
 
 # ─── IA Zeydan ─────────────────────────────────────────────────────────────────
@@ -111,74 +110,65 @@ async def on_message(message: discord.Message):
                 if count == 1:
                     await member.timeout(timedelta(seconds=1), reason="Warn pour contenu sexuel")
                     await log_channel.send(f"⚠️ `WARN 1` : {member.mention} → contenu sexuel.")
-                    await message.author.send("⚠️ Tu viens de recevoir un **warn 1** pour contenu sexuel. Fais attention.")
+                    await message.author.send("⚠️ Tu viens de recevoir un **warn 1** pour contenu sexuel.")
+                    await message.channel.send("📿 *Rappel : En tant que musulman, garde la pudeur et évite ce qui mène à la turpitude. Allah est témoin de tout.*")
                 elif count == 2:
                     await member.timeout(timedelta(seconds=1), reason="Deuxième avertissement pour contenu sexuel")
                     await log_channel.send(f"⚠️ `WARN 2` : {member.mention} → récidive.")
                     await message.author.send("⚠️ Tu as reçu un **2ᵉ avertissement**. Encore un et tu seras temporairement mute.")
+                    await message.channel.send("📿 *Rappel : L’impudeur mène à l’égarement. Celui qui croit en Allah et au Jour dernier, qu’il dise du bien ou qu’il se taise.*")
                 elif count >= 3:
                     await member.timeout(timedelta(minutes=10), reason="Récidive de contenu sexuel")
                     await log_channel.send(f"🔇 `TEMPMUTE 10 min` : {member.mention} → récidive répétée.")
                     await message.author.send("🔇 Tu as été **mute pendant 10 minutes** pour récidive de contenu sexuel.")
+                    await message.channel.send("📿 *Rappel : Crains Allah même en privé. Celui qui se repent sincèrement, Allah lui pardonne.*")
+                    warn_counts[user_id] = 0
+                    save_warns()
                     warn_counts[user_id] = 0
                     save_warns()
             except Exception as e:
                 print(f"[Erreur sanctions] {e}")
             return
 
-            user_id = str(message.author.id)
-            warn_counts[user_id] = warn_counts.get(user_id, 0) + 1
-            count = warn_counts[user_id]
-            save_warns()
+    # Si un rôle autorisé écrit : zeydan dis [message]
+    if message.content.lower().startswith("zeydan dis "):
+        autorise_role = 1379268686141063289
+        if any(role.id == autorise_role for role in message.author.roles):
+            contenu = message.content[11:]
+            await message.channel.send(
+                contenu,
+                allowed_mentions=discord.AllowedMentions(everyone=True, users=True)
+            )
+        else:
+            await message.channel.send("🚫 Tu n’as pas le rôle nécessaire pour me faire parler.")
+        return
 
-            try:
-                member = await message.guild.fetch_member(message.author.id)
-                log_channel = client.get_channel(SANCTION_LOG_CHANNEL)
+    # Réponse normale IA
+    reply = await ask_openai(message.author.id, message.content)
 
-                if count == 1:
-                    await member.timeout(timedelta(seconds=1), reason="Warn pour contenu sexuel")
-                    await log_channel.send(f"⚠️ `WARN 1` : {member.mention} → contenu sexuel.")
-                    await message.author.send("⚠️ Tu as reçu un avertissement pour contenu sexuel.")
-                elif count == 2:
-                    await member.timeout(timedelta(seconds=1), reason="Deuxième avertissement pour contenu sexuel")
-                    await log_channel.send(f"⚠️ `WARN 2` : {member.mention} → récidive.")
-                    await message.author.send("⚠️ Deuxième avertissement. Encore un et tu seras mute.")
-                elif count >= 3:
-                    await member.timeout(timedelta(minutes=10), reason="Récidive de contenu sexuel")
-                    await log_channel.send(f"🔇 `TEMPMUTE 10 min` : {member.mention} → récidive répétée.")
-                    await message.author.send("🔇 Tu as été mute 10 minutes pour contenu sexuel répété.")
-                    warn_counts[user_id] = 0
-                    save_warns()
-            except Exception as e:
-                print(f"[Erreur sanctions] {e}")
-            return
+    # Ping intelligent : transforme "@pseudo" en vraie mention si possible
+    tags = re.findall(r"@(\w+)", reply)
+    for tag in tags:
+        for member in message.guild.members:
+            if tag.lower() in member.name.lower() or tag.lower() in member.display_name.lower():
+                reply = reply.replace(f"@{tag}", member.mention)
+                break
 
-        # Réponse normale IA
-        reply = await ask_openai(message.author.id, message.content)
+    # Ping manuel style "ping pseudo"
+    if message.content.lower().startswith("ping "):
+        pseudo = message.content[5:].strip().lower()
+        for member in message.guild.members:
+            if pseudo in member.name.lower() or pseudo in member.display_name.lower():
+                phrases = [
+                    f"{member.mention} wsh répond un peu wallah 😭",
+                    f"{member.mention} t’es active ou t’as disparu ?",
+                    f"{member.mention} la légende dit que t’es co 👀",
+                    f"{member.mention} ramène-toi t’as été cité 💬"
+                ]
+                await message.channel.send(random.choice(phrases))
+                return
 
-        # Ping intelligent : transforme "@pseudo" en vraie mention si possible
-        tags = re.findall(r"@(\w+)", reply)
-        for tag in tags:
-            for member in message.guild.members:
-                if tag.lower() in member.name.lower() or tag.lower() in member.display_name.lower():
-                    reply = reply.replace(f"@{tag}", member.mention)
-                    break
-
-        # Ping manuel style "ping pseudo"
-        if message.content.lower().startswith("ping "):
-            pseudo = message.content[5:].strip().lower()
-            for member in message.guild.members:
-                if pseudo in member.name.lower() or pseudo in member.display_name.lower():
-                    phrases = [
-                        f"{member.mention} wsh répond un peu wallah 😭",
-                        f"{member.mention} t’es active ou t’as disparu ?",
-                        f"{member.mention} la légende dit que t’es co 👀",
-                        f"{member.mention} ramène-toi t’as été cité 💬"
-                    ]
-                    await message.channel.send(random.choice(phrases))
-                    return
-
-        await message.channel.send(reply)
+    await message.channel.send(reply)
 
 client.run(TOKEN)
 
