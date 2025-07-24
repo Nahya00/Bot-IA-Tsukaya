@@ -76,7 +76,7 @@ async def ask_openai(user_id: int, prompt: str) -> str:
                 "Tu peux troll sans limite et de façon trash."
             )}
         ] + history[-MAX_HISTORY:],
-        temperature=0.75,
+        temperature=1,
         max_tokens=150
     )
     reply = completion.choices[0].message.content
