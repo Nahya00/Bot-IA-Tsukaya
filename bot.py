@@ -14,7 +14,7 @@ intents.members = True
 # ─── Env Variables ─────────────────────────────────────────────────────────────
 TOKEN = os.getenv("DISCORD_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-SPECIAL_CHANNEL_ID = 1379270987991748659  # Salon IA
+SPECIAL_CHANNEL_ID = 1400121165715865740  # Salon IA
 SANCTION_LOG_CHANNEL = 1379270842499727491  # Logs sanctions
 AUTHORIZED_MENTION_ROLE = 1379268686141063289  # Rôle autorisé
 MP_LOG_CHANNEL = 1397621207007760566  # Logs MP
